@@ -111,14 +111,12 @@ public class ParallaxBlurCLI {
             
             Blurrer.setBlurType(BlurType.LINEAR_MOTION);
             BufferedImage out = null;
-            for(int i = 0; i < 5; i++){
-                long time = System.currentTimeMillis();
-                out = Blurrer.blur(im, null, distF, angleF);
-                System.out.println(System.currentTimeMillis() - time);
-            }
+            long time = System.currentTimeMillis();
+            out = Blurrer.blur(im, null, distF, angleF);
+            System.out.println(System.currentTimeMillis() - time);
             
             ImageIO.write(out, "png", outFile);
-            
+
         } catch (IOException ioe) {
             ioe.printStackTrace();
             System.exit(-1);
