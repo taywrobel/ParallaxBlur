@@ -12,7 +12,7 @@ Project is set up as an eclipse project, and should be able to be easily importe
 To install rootbeer:
 
 1.  Download the source code from the link above
-2.  Navigate to the download location and run 'ant' to compile project
+2.  Navigate to the download location and run `ant` to compile project
 3.  Run pack-rootbeer in order to generate the JAR for your system
 4.  Copy the generated Rootbeer.jar into the lib directory
 
