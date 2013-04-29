@@ -20,10 +20,11 @@ Execution Instructions
 ----------------------
 
 The program is to be run from command line.  The arguments are as follows:
- -a <arg>   Angle, in degrees
- -d <arg>   Depthmap image
- -g         Process images on GPU
- -help      Print this message
- -i <arg>   Input image
- -l <arg>   Blur length
- -m         Use linear motion blue only (no parallax)
+
+    -a <arg>   Angle, in degrees
+    -d <arg>   Depthmap image
+    -g         Process images on GPU
+    -help      Print this message
+    -i <arg>   Input image
+    -l <arg>   Blur length
+    -m         Use linear motion blue only (no parallax)
