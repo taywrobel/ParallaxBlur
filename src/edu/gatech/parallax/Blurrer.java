@@ -27,7 +27,7 @@ public class Blurrer {
         LINEAR_MOTION, PARALLAX_MOTION
     }
     
-    static{
+    static {
         instance = new Blurrer();
     }
     
@@ -70,32 +70,52 @@ public class Blurrer {
         
         int[][][] result = new int[pixels.length][pixels[0].length][pixels[0][0].length];
         
+        if(!gpu){
         for (int y = 0; y < pixels[0][0].length; y++) {
             for (int x = 0; x < pixels[0].length; x++) {
-                pBlur(samplePoints, pixels, depths, result, x, y);
+                pBlur(samplePoints, pixels, depths, result, x, y, dist);
             }
+        }
+        } else {
+        	List<Kernel> jobs = new ArrayList<Kernel>();
+            for (int i = 0; i < pixels[0].length; i++) {
+                jobs.add(new ParallaxKernel(samplePoints, pixels, depths, result, i,
+                        pixels[0][0].length, dist));
+            }
+            
+            Rootbeer rootbeer = new Rootbeer();
+            rootbeer.runAll(jobs);
         }
         
         return packPixels(result, im.getData().getSampleModel(), im.getColorModel());
     }
     
-    private static void pBlur(int[][] samples, int[][][] src, int[][] dm, int[][][] dest, int x, int y){
+    private static void pBlur(int[][] samples, int[][][] src, int[][] dm, int[][][] dest, int x, int y, float maxDist){
         int width = src[0].length;
         int height = src[0][0].length;
+        
         for(int c = 0; c < src.length; c++){
             int count = 0;
             int sum = 0;
             for(int i = 0; i < samples.length; i++){
                 int sx = x + samples[i][0];
                 int sy = y + samples[i][1];
+            	float dist = (float)Math.sqrt(Math.abs(samples[i][0]) + Math.abs(samples[i][1]));
                 if(sx >= 0 && sx < width){
                     if(sy >= 0 && sy < height){
-                        count++;
-                        sum += src[c][sx][sy];
+                    	if(dist <= (maxDist * (float)dm[sx][sy] / 256.0)){
+                    		count++;
+                    		sum += src[c][sx][sy];
+                    	} else {
+                    		count++;
+                    		sum += src[c][x][y];
+                    	}
                     }
                 }
             }
-            int avg = sum / count;
+            int avg = src[c][x][y];
+            if(count > 0)
+            	avg = sum / count;
             dest[c][x][y] = avg;
         }
     }
@@ -200,6 +220,7 @@ public class Blurrer {
     }
     
     private static int[][] getLinePoints(float dist, float angle){
+    	System.out.println("Dist: " + dist + ", Angle: " + angle);
         int rangeX = (int)(dist * Math.cos(angle));
         int rangeY = (int)(dist * Math.sin(angle));
         
@@ -214,44 +235,26 @@ public class Blurrer {
     private static int[][] BresenhamLine(int x0, int y0, int x1, int y1){
         ArrayList<Point> points = new ArrayList<>();
         
-//        dx := abs(x1-x0)
-//                dy := abs(y1-y0) 
         int dx = Math.abs(x1-x0);
         int dy = Math.abs(y1-y0);
-//                if x0 < x1 then sx := 1 else sx := -1
-//                if y0 < y1 then sy := 1 else sy := -1
+
         int sx = (x0 < x1 ? 1 : -1);
         int sy = (y0 < y1 ? 1 : -1);
-//                err := dx-dy
         int err = dx-dy;
-//              
+
         while(true){
-            
-//                loop
-//                  plot(x0,y0)
             points.add(new Point(x0,y0));
-//                  if x0 = x1 and y0 = y1 exit loop
             if(x0 == x1 && y0 == y1)
                 break;
-//                  e2 := 2*err
             int e2 = 2 * err;
-//                  if e2 > -dy then 
-//                    err := err - dy
-//                    x0 := x0 + sx
-//                  end if
             if(e2 > -1 * dy){
                 err = err - dy;
                 x0 = x0 + sx;
             }
-//                  if e2 <  dx then 
-//                    err := err + dx
-//                    y0 := y0 + sy 
-//                  end if
             if(e2 < dx){
                 err = err + dx;
                 y0 = y0 + sy;
             }
-//                end loop
         }
         
         int[][] pArr = new int[points.size()][2];

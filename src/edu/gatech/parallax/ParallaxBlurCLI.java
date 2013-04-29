@@ -126,6 +126,7 @@ public class ParallaxBlurCLI {
     private static void runParallax(String filename, String depthFile,
             String angle, String distance) {
         float angleF = Float.parseFloat(angle);
+        angleF = (float)(angleF * 2 * Math.PI / 360);
         float distF = Float.parseFloat(distance);
         
         try {
@@ -140,7 +141,11 @@ public class ParallaxBlurCLI {
             dm = ImageIO.read(dmFile);
             
             Blurrer.setBlurType(BlurType.PARALLAX_MOTION);
-            BufferedImage out = Blurrer.blur(im, dm, distF, angleF);
+            BufferedImage out = null;
+            
+            long time = System.currentTimeMillis();
+            out = Blurrer.blur(im, dm, distF, angleF);
+            System.out.println(System.currentTimeMillis() - time);
             
             ImageIO.write(out, "png", outFile);
             
